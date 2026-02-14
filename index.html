@@ -1,99 +1,118 @@
-<script>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Entity Generator</title>
+<style>
+body{
+    background:#111;
+    color:#eee;
+    font-family:monospace;
+    padding:20px;
+}
+button{
+    padding:10px 20px;
+    background:#222;
+    color:#fff;
+    border:1px solid #555;
+    cursor:pointer;
+}
+textarea{
+    width:100%;
+    height:400px;
+    background:#000;
+    color:#0f0;
+    margin-top:20px;
+    padding:10px;
+}
+select{
+    padding:5px;
+    margin-left:10px;
+}
+</style>
+</head>
+<body>
 
+<h2>Random Entity Generator</h2>
+
+<label>Level:
+<select id="level">
+<option value="1">Lv.1</option>
+<option value="2">Lv.2</option>
+<option value="3">Lv.3</option>
+</select>
+</label>
+
+<button onclick="generateEntity()">Generate</button>
+
+<textarea id="output" readonly></textarea>
+
+<script>
 const levelLimits = {
-    1: 20000,
-    2: 10000,
-    3: 5000,
-    4: 1000,
-    5: 100
+    1: 10,
+    2: 7,
+    3: 5
 };
 
 const generatedCount = {
     1: 0,
     2: 0,
-    3: 0,
-    4: 0,
-    5: 0
+    3: 0
 };
 
-function random(min,max){
-    return Math.floor(Math.random()*(max-min+1))+min;
-}
+const types = ["人型", "四足型", "浮遊型", "擬態型"];
+const traits = ["視認すると接近する", "音に反応する", "光を嫌う", "一定距離を保つ"];
+const environments = ["廃病院", "地下駐車場", "森林地帯", "高層ビル内部"];
+const behaviors = ["無音で移動する", "低い唸り声を発する", "壁を這う", "突然静止する"];
 
-function pick(arr){
+function randomFrom(arr){
     return arr[Math.floor(Math.random()*arr.length)];
 }
 
-const themes = [
-    "無限回廊型空間歪曲",
-    "閉鎖循環住宅空間",
-    "局所重力崩壊現象",
-    "視界認識阻害波動",
-    "時間遅延区画",
-    "自己増殖未知物質",
-    "模倣型人型存在"
-];
-
-const statuses = ["Active","Dormant","Archived","Sealed"];
-
 function generateEntity(){
-
     const level = document.getElementById("level").value;
 
     if(generatedCount[level] >= levelLimits[level]){
-        alert("このLvの生成上限に達している");
+        alert("このLvは上限に達している");
         return;
     }
 
     generatedCount[level]++;
 
-    const number = String(random(1,9999)).padStart(4,"0");
-    const theme = pick(themes);
-    const status = pick(statuses);
+    const type = randomFrom(types);
+    const trait = randomFrom(traits);
+    const env = randomFrom(environments);
+    const behavior = randomFrom(behaviors);
 
-    let text = 
-`CII/CL/File-${number}
-Classification: Entity-${number}
-ACCESS: Lv.${level}
-Status: ${status}
-─────
-■ 概要
-─────
-Entity-${number}は${theme}として分類される。
-発生地点は固定されず、断続的に観測報告が提出されている。
-内部構造または発生源は未特定であり、完全な再現実験は成功していない。
-現時点では観測優先対象とされる。
-─────
-■ 観測記録
-─────
-初期報告では空間的整合性の破綻が確認された。
-距離測定値と実移動距離に差異が生じる。
-録画記録には断続的な信号欠損が発生。
-複数職員が軽度の方向感覚喪失を報告。
-─────
-■ 被害状況
-─────
-現段階での死者報告は無し。
-長時間曝露時に精神圧迫、軽度混乱症状が発生。
-Lv.${level}基準に照らし影響範囲は限定的と判断。
-─────
-■ 分類経緯
-─────
-初期は暫定分類。
-影響範囲拡大の報告により再評価。
-危険指数算定後、Lv.${level}に正式指定。
-─────
-■ 補足
-─────
-自然発生型か外的誘発型かは未確定。
-継続観測中。
-─────
-■ CORE審議履歴（該当時）
-─────
-該当無し。
-────────────────`;
+    let text = `
+Entity Report
+
+危険度: Lv.${level}
+分類: ${type}
+出現環境: ${env}
+
+概要:
+本個体は${type}に分類される存在であり、${env}にて確認されている。
+主な特性として「${trait}」の性質を持ち、
+行動パターンは「${behavior}」が確認されている。
+
+詳細記録:
+`;
+
+    // 1500文字以上にするための補強
+    while(text.length < 1500){
+        text += `
+観測時、対象は不自然な挙動を示した。
+視線を外した瞬間に位置が変化している可能性がある。
+直接的な接触は推奨されない。
+物理攻撃への耐性は未確定。
+精神的圧迫感を伴う存在である。
+`;
+    }
 
     document.getElementById("output").value = text;
 }
-
 </script>
+
+</body>
+</html>
