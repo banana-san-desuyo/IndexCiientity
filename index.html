@@ -2,30 +2,27 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CII Entity Generator</title>
 
 <style>
 body{
-    background:#0d0d0d;
-    color:#e0e0e0;
+    background:#0f1115;
+    color:#e4e4e4;
     font-family:monospace;
     padding:20px;
 }
 h2{
-    border-bottom:1px solid #444;
-    padding-bottom:10px;
+    color:#9ad1ff;
 }
 button{
     padding:10px 20px;
-    background:#1a1a1a;
+    background:#1c1f26;
     color:#fff;
-    border:1px solid #555;
+    border:1px solid #444;
     cursor:pointer;
-    margin-top:10px;
 }
 button:hover{
-    background:#222;
+    background:#2a2f38;
 }
 textarea{
     width:100%;
@@ -33,15 +30,12 @@ textarea{
     background:#000;
     color:#00ff88;
     margin-top:20px;
-    padding:15px;
-    white-space:pre;
+    padding:10px;
+    border:1px solid #333;
 }
 select{
     padding:5px;
     margin-left:10px;
-    background:#111;
-    color:#fff;
-    border:1px solid #555;
 }
 </style>
 </head>
@@ -50,157 +44,154 @@ select{
 
 <h2>CII Random Entity Generator</h2>
 
-<label>
-ACCESS Level:
+<label>ACCESS Level:
 <select id="level">
 <option value="1">Lv.1</option>
 <option value="2">Lv.2</option>
 <option value="3">Lv.3</option>
 <option value="4">Lv.4</option>
-<option value="5">Lv.5</option>
 </select>
 </label>
 
-<br>
-<button onclick="generateEntity()">Generate Entity</button>
+<button onclick="generateEntity()">Generate</button>
 
 <textarea id="output" readonly></textarea>
 
 <script>
 
-const classifications = {
-    "空間干渉型": [
-        "特定座標において空間層が多重化する現象が確認されている。",
-        "内部進入時、出口の位置が再定義される。",
-        "観測者ごとに内部構造が変動する可能性が示唆される。",
-        "座標固定が困難であり、位置情報が不安定である。"
-    ],
-    "現象発生型": [
-        "局地的時間誤差が断続的に発生する。",
-        "音響波形が逆相で観測される。",
-        "視認不能な衝撃現象が周期発生する。",
-        "温度変化が物理法則に反する挙動を示す。"
-    ],
-    "物質変質型": [
-        "接触物体の分子配列が再構築される。",
-        "金属物質が有機化する現象が確認された。",
-        "硬度および質量が不規則変動する。",
-        "外見と内部構造が一致しない。"
-    ],
-    "生物異常型": [
-        "急速再生能力を保持する。",
-        "視線接触により神経負荷が発生する。",
-        "外見が周囲の記憶依存で変化する。",
-        "通常の生命活動指標を逸脱している。"
-    ]
-};
+// ==== 番号重複防止 ====
+let usedNumbers = new Set();
 
-const statuses = ["Active", "Dormant", "Archived", "Sealed"];
+// ==== 基本データ ====
+const statuses = ["Active","Dormant","Archived","Sealed"];
+const types = ["II-空間","II-現象","II-生体","UI-物質"];
 
+// ==== テキスト素材 ====
+const overviewLines = [
+"当該対象は局所的な現実構造の歪曲を伴う特異存在である。",
+"観測対象は通常物理法則と一致しない振る舞いを示す。",
+"内部空間構造は外部寸法と一致しない可能性が高い。",
+"知覚干渉を引き起こす低強度の認識改変波形が確認されている。",
+"対象は限定的条件下でのみ出現が確認される。",
+"時間認識の遅延または圧縮が報告されている。",
+"対象内部では方位感覚が著しく低下する。",
+"観測時、空間反響値が異常上昇する。"
+];
+
+const recordLines = [
+"初期発見は地方監視班による定期巡回中であった。",
+"熱源反応は検出されなかった。",
+"記録機器の一部が同期不能状態に陥った。",
+"対象への接近時、電子機器に軽微なノイズが発生。",
+"接触実験は安全規定により中止された。",
+"音響反射が通常値と一致しない。",
+"監視映像に断続的なフレーム欠落が発生。"
+];
+
+const damageLines = [
+"直接的な物理被害は軽微。",
+"精神的圧迫感を訴える報告が複数存在。",
+"長時間滞在者に軽度の記憶混濁。",
+"被害規模は限定的である。",
+"恒常的な人体損傷は未確認。"
+];
+
+const classificationLines = [
+"CII基準に基づき暫定分類。",
+"危険度は干渉範囲を基準に決定。",
+"再評価により分類変更の可能性あり。",
+"観測回数増加により再審議予定。"
+];
+
+const supplementLines = [
+"対象周辺では異常な静寂が確認される。",
+"環境温度変化は検出されない。",
+"再現性は低い。",
+"意図的発生は確認されていない。",
+"発生周期は不定。"
+];
+
+const coreLines = [
+"CORE審議により監視継続決定。",
+"封鎖措置は見送られた。",
+"局所隔離プロトコル適用。",
+"危険度再評価を保留。"
+];
+
+// ==== ユーティリティ ====
 function randomFrom(arr){
-    return arr[Math.floor(Math.random() * arr.length)];
+    return arr[Math.floor(Math.random()*arr.length)];
 }
 
-function pad(num){
-    return num.toString().padStart(4,'0');
+function shuffle(arr){
+    return arr.sort(()=>Math.random()-0.5);
 }
 
-function getUniqueNumber(){
-    let used = JSON.parse(localStorage.getItem("cii_used_numbers") || "[]");
-    let num;
-    do {
-        num = Math.floor(Math.random() * 9999) + 1;
-    } while(used.includes(num));
-    used.push(num);
-    localStorage.setItem("cii_used_numbers", JSON.stringify(used));
-    return pad(num);
-}
-
-function shuffle(array){
-    return array.sort(() => Math.random() - 0.5);
-}
-
-function buildSection(type){
-
-    let base = shuffle([...classifications[type]]);
+function buildSection(source){
+    let pool = shuffle([...source]);
     let text = "";
     let index = 0;
 
     while(text.length < 1800){
-
-        if(index >= base.length){
-            base = shuffle([...classifications[type]]);
+        if(index >= pool.length){
+            pool = shuffle([...source]);
             index = 0;
         }
-
-        const main = base[index++];
-        const variation = [
-            "当該対象は現在も監視継続中である。",
-            "干渉試験は制限下でのみ実施される。",
-            "観測値は記録班により逐次更新されている。",
-            "関連事象の因果関係は未確定である。",
-            "再現性は確認されていない。"
-        ];
-
-        text += main + "\n";
-        text += randomFrom(variation) + "\n\n";
-    }
-
-    return text;
-}
+        text += pool[index++] + "\n";
     }
     return text;
 }
 
+function generateNumber(){
+    let num;
+    do{
+        num = Math.floor(Math.random()*9000)+1000;
+    }while(usedNumbers.has(num));
+
+    usedNumbers.add(num);
+    return num;
+}
+
+// ==== メイン生成 ====
 function generateEntity(){
 
     const level = document.getElementById("level").value;
-    const fileNum = getUniqueNumber();
-
-    const types = Object.keys(classifications);
-    const classification = randomFrom(types);
+    const fileNum = generateNumber();
+    const type = randomFrom(types);
     const status = randomFrom(statuses);
 
-    const entityType = (level >= 3) ? "II" : (Math.random() > 0.3 ? "II" : "UI");
-
-    const overview = buildSection(classification);
-    const record = buildSection(classification);
-    const damage = buildSection(classification);
-    const classify = buildSection(classification);
-    const note = buildSection(classification);
-
-    const output = 
+    let text = 
 `CII/CL/File-${fileNum}
-Classification: Entity-${fileNum} (${entityType})
+Classification: Entity-${fileNum} (${type})
 ACCESS: Lv.${level}
 Status: ${status}
 ─────
 ■ 概要
 ─────
-${overview}
+${buildSection(overviewLines)}
 ─────
 ■ 観測記録
 ─────
-${record}
+${buildSection(recordLines)}
 ─────
 ■ 被害状況
 ─────
-${damage}
+${buildSection(damageLines)}
 ─────
 ■ 分類経緯
 ─────
-${classify}
+${buildSection(classificationLines)}
 ─────
 ■ 補足
 ─────
-${note}
+${buildSection(supplementLines)}
 ─────
 ■ CORE審議履歴（該当時）
 ─────
-${level >= 4 ? "CORE審議実施済。" : "該当なし"}
+${buildSection(coreLines)}
 ────────────────`;
 
-    document.getElementById("output").value = output;
+    document.getElementById("output").value = text;
 }
 
 </script>
