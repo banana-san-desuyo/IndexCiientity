@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Entity Generator</title>
+<style>
+body{
+    background:#111;
+    color:#eee;
+    font-family:monospace;
+    padding:20px;
+}
+button{
+    padding:10px 20px;
+    background:#222;
+    color:#fff;
+    border:1px solid #555;
+    cursor:pointer;
+}
+textarea{
+    width:100%;
+    height:400px;
+    background:#000;
+    color:#0f0;
+    margin-top:20px;
+    padding:10px;
+}
+select{
+    padding:5px;
+    margin-left:10px;
+}
+</style>
+</head>
+<body>
+
+<h2>Random Entity Generator</h2>
+
+<label>Level:
+<select id="level">
+<option value="1">Lv.1</option>
+<option value="2">Lv.2</option>
+<option value="3">Lv.3</option>
+</select>
+</label>
+
+<button onclick="generateEntity()">Generate</button>
+
+<textarea id="output" readonly></textarea>
+
+<script>
+const levelLimits = {
+    1: 10,
+    2: 7,
+    3: 5
+};
+
+const generatedCount = {
+    1: 0,
+    2: 0,
+    3: 0
+};
+
+const types = ["人型", "四足型", "浮遊型", "擬態型"];
+const traits = ["視認すると接近する", "音に反応する", "光を嫌う", "一定距離を保つ"];
+const environments = ["廃病院", "地下駐車場", "森林地帯", "高層ビル内部"];
+const behaviors = ["無音で移動する", "低い唸り声を発する", "壁を這う", "突然静止する"];
+
+function randomFrom(arr){
+    return arr[Math.floor(Math.random()*arr.length)];
+}
+
+function generateEntity(){
+    const level = document.getElementById("level").value;
+
+    if(generatedCount[level] >= levelLimits[level]){
+        alert("このLvは上限に達している");
+        return;
+    }
+
+    generatedCount[level]++;
+
+    const type = randomFrom(types);
+    const trait = randomFrom(traits);
+    const env = randomFrom(environments);
+    const behavior = randomFrom(behaviors);
+
+    let text = `
+Entity Report
+
+危険度: Lv.${level}
+分類: ${type}
+出現環境: ${env}
+
+概要:
+本個体は${type}に分類される存在であり、${env}にて確認されている。
+主な特性として「${trait}」の性質を持ち、
+行動パターンは「${behavior}」が確認されている。
+
+詳細記録:
+`;
+
+    // 1500文字以上にするための補強
+    while(text.length < 1500){
+        text += `
+観測時、対象は不自然な挙動を示した。
+視線を外した瞬間に位置が変化している可能性がある。
+直接的な接触は推奨されない。
+物理攻撃への耐性は未確定。
+精神的圧迫感を伴う存在である。
+`;
+    }
+
+    document.getElementById("output").value = text;
+}
+</script>
+
+</body>
+</html>
